@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 // ============== Merge Sort =====================
 
@@ -75,6 +76,15 @@ void quicksort(double A[], int lo, int hi) {
 
 // =====================================================
 
+bool isSorted(double A[], size_t n) {
+  for (size_t i = 0; i < n-1; ++i) {
+    if (A[i] > A[i+1]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void printArray(double A[], size_t n) {
   printf("[");
   if (n == 0) {
@@ -84,7 +94,12 @@ void printArray(double A[], size_t n) {
   for (size_t i = 1; i < n; ++i) {
     printf(", %.2f", A[i]);
   }
-  printf("]\n");
+  printf("] - ");
+  if (isSorted(A, n)) {
+    printf("sorted\n");
+  } else {
+    printf("not sorted\n");
+  }
 }
 
 int main(void) {

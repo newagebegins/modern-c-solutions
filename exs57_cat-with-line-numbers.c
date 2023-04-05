@@ -22,25 +22,38 @@ void output_stream(FILE* instream, char buffer[buf_max], bool with_line_numbers)
 }
 
 int main(int argc, char* argv[argc+1]) {
-  int ret = EXIT_FAILURE;
   char buffer[buf_max] = { 0 };
-  bool with_line_numbers = true;
-  if (argc < 2) {
+
+  if (argc == 1) {
+    output_stream(stdin, buffer, false);
+    return EXIT_SUCCESS;
+  }
+
+  bool with_line_numbers = false;
+  size_t files_args_start = 1;
+
+  if (strcmp(argv[1], "-n") == 0) {
+    with_line_numbers = true;
+    files_args_start = 2;
+  }
+
+  if (!argv[files_args_start]) {
     output_stream(stdin, buffer, with_line_numbers);
-    ret = EXIT_SUCCESS;
-  } else {
-    for (int i = 1; i < argc; ++i) {        // Processes args
-      FILE* instream = fopen(argv[i], "r"); // as filenames
-      if (instream) {
-        output_stream(instream, buffer, with_line_numbers);
-        fclose(instream);
-        ret = EXIT_SUCCESS;
-      } else {
-        /* Provides some error diagnostic. */
-        fprintf(stderr, "Could not open %s: ", argv[i]);
-        perror(0);
-        errno = 0;                        // Resets the error code
-      }
+    return EXIT_SUCCESS;
+  }
+
+  int ret = EXIT_FAILURE;
+  for (int i = files_args_start; i < argc; ++i) { // Processes args
+    FILE* instream = fopen(argv[i], "r");         // as filenames
+    if (instream) {
+      output_stream(instream, buffer, with_line_numbers);
+      fclose(instream);
+      ret = EXIT_SUCCESS;
+    } else {
+      /* Provides some error diagnostic. */
+      fprintf(stderr, "Could not open %s: ", argv[i]);
+      perror(0);
+      errno = 0;                        // Resets the error code
     }
   }
   return ret;

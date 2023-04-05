@@ -1,29 +1,26 @@
 #include <stdlib.h>
-#include <math.h>
 #include <stdio.h>
 #include <stdbool.h>
-
-size_t find_dot(char str[]) {
-  size_t i = 0;
-  for (; str[i]; ++i) {
-    if (str[i] == '.') {
-      break;
-    }
-  }
-  return i;
-}
+#include <string.h>
 
 double my_strtod(char str[]) {
-  size_t d = find_dot(str);
   double res = 0.0;
   bool neg = str[0] == '-';
-  for (size_t i = neg ? 1 : 0; str[i]; ++i) {
-    if (str[i] == '.') {
-      continue;
-    }
+  size_t i = neg ? 1 : 0;
+  for (; str[i] && str[i] != '.'; ++i) {
     size_t digit = str[i] - '0';
-    int p = (i<d) ? (d-1-i) : -(i-d);
-    res += digit * pow(10.0, p);
+    res *= 10.0;
+    res += digit;
+  }
+  if (str[i] == '.') {
+    double frac = 0.0;
+    for (i = strlen(str) - 1; str[i] != '.'; --i) {
+      size_t digit = str[i] - '0';
+      frac /= 10.0;
+      frac += digit;
+    }
+    frac /= 10.0;
+    res += frac;
   }
   if (neg) {
     res *= -1.0;

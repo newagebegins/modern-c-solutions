@@ -80,11 +80,19 @@ char const* rat_print(size_t len, char tmp[len], rat const* x) {
   return tmp;
 }
 
+// Exs 15, p.152
+char const* rat_normalize_print(size_t len, char tmp[len], rat const* x) {
+  rat_normalize(x);
+  return rat_print(len, tmp, x);
+}
+
 int main(void) {
   char buf[16];
   rat r1 = rat_get(11, 7);
   printf("r1 = %s\n", rat_print(16, buf, &r1));
   rat r2 = rat_get(-59, 111);
   printf("r2 = %s\n", rat_print(16, buf, &r2));
+  rat r3 = rat_get(-25, 100);
+  printf("r3 = %s\n", rat_normalize_print(16, buf, &r3));
   return EXIT_SUCCESS;
 }

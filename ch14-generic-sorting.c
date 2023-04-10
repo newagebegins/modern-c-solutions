@@ -45,6 +45,42 @@ void TopDownMergeSort(void* A, void* B, size_t n, size_t size, compare_function 
   TopDownSplitMerge(B, 0, n, A, size, compar);
 }
 
+// ============== Quick Sort ===========================
+
+int partition(void* A, int lo, int hi, size_t size, compare_function compar) {
+  void* pivot = A + hi*size;
+
+  int i = lo - 1;
+
+  for (int j = lo; j < hi; ++j) {
+    if (compar(A+j*size, pivot) <= 0) {
+      ++i;
+      unsigned char tmp[size];
+      memcpy(tmp, A+i*size, size);
+      memcpy(A+i*size, A+j*size, size);
+      memcpy(A+j*size, tmp, size);
+    }
+  }
+
+  ++i;
+  unsigned char tmp[size];
+  memcpy(tmp, A+i*size, size);
+  memcpy(A+i*size, A+hi*size, size);
+  memcpy(A+hi*size, tmp, size);
+  return i;
+}
+
+void quicksort(void* A, int lo, int hi, size_t size, compare_function compar) {
+  if (lo >= hi || lo < 0) {
+    return;
+  }
+
+  int p = partition(A, lo, hi, size, compar);
+
+  quicksort(A, lo, p - 1, size, compar);
+  quicksort(A, p + 1, hi, size, compar);
+}
+
 // =====================================================
 
 bool isSorted(double A[], size_t n) {
@@ -81,4 +117,10 @@ int main(void) {
   printArray(A, 8);
   TopDownMergeSort(A, B, 8, sizeof A[0], compare_double);
   printArray(A, 8);
+
+  double C[8] = {8.0, 3.3, 5.2, 3.3, 9.0, 22.1, 7.11, 0.3};
+  printf("\nQuick sort:\n");
+  printArray(C, 8);
+  quicksort(C, 0, 7, sizeof C[0], compare_double);
+  printArray(C, 8);
 }

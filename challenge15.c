@@ -61,13 +61,17 @@ char* replace_word(char const* s, char const* w, char const* r) {
 void test_replace_word(void) {
   char const* s = "Hello, World!";
 
-  char const* x1 = replace_word(s, "World", "Modern C");
-  char const* x2 = replace_word(s, "World", "C");
-  char const* x3 = replace_word(s, "World", "");
+  char* x1 = replace_word(s, "World", "Modern C");
+  char* x2 = replace_word(s, "World", "C");
+  char* x3 = replace_word(s, "World", "");
 
   printf("x1: %s\n", x1);
   printf("x2: %s\n", x2);
   printf("x3: %s\n", x3);
+
+  free(x1);
+  free(x2);
+  free(x3);
 }
 
 int main(void) {

@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 // Find a word w in the string s.
 // Return a pointer to the start of w in s or 0 if not found.
@@ -38,7 +39,39 @@ void test_find_word(void) {
   printf("f3: %s\n", f3);
 }
 
+// Replace first occurence of w by r in s, return new string.
+char* replace_word(char const* s, char const* w, char const* r) {
+  if (!r || !s || !w || !w[0]) return 0;
+  char const* found = find_word(s, w);
+  if (!found) return 0;
+  size_t slen = strlen(s);
+  size_t wlen = strlen(w);
+  size_t rlen = strlen(r);
+  size_t new_size = slen - wlen + rlen + 1; // + \0
+  char* buf = malloc(new_size);
+  if (!buf) return 0;
+  size_t prefix = found - s;
+  size_t suffix = slen - prefix - wlen + 1; // + \0
+  memcpy(buf, s, prefix);
+  memcpy(buf+prefix, r, rlen);
+  memcpy(buf+prefix+rlen, s+prefix+wlen, suffix);
+  return buf;
+}
+
+void test_replace_word(void) {
+  char const* s = "Hello, World!";
+
+  char const* x1 = replace_word(s, "World", "Modern C");
+  char const* x2 = replace_word(s, "World", "C");
+  char const* x3 = replace_word(s, "World", "");
+
+  printf("x1: %s\n", x1);
+  printf("x2: %s\n", x2);
+  printf("x3: %s\n", x3);
+}
+
 int main(void) {
   test_find_word();
+  test_replace_word();
   return EXIT_SUCCESS;
 }

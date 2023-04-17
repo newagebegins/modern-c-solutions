@@ -18,6 +18,10 @@ bool match(char const* r, char const* s) {
       }
       return match(r, s+1);
     }
+    // Match any single character
+    case '?': {
+      return match(r+1, s+1);
+    }
     // Match a literal character
     default: {
       if (*r == *s) {
@@ -40,6 +44,12 @@ void test_match(void) {
   assert(!match("a*b", "afooc"));
   assert(!match("a*b", "ac"));
   assert(!match("a*b", "a"));
+
+  assert(match("a?c", "abc"));
+  assert(match("a?c", "adc"));
+  assert(!match("a?c", "ac"));
+  assert(!match("a?c", "ab"));
+  assert(!match("a?c", "bc"));
 }
 
 int main(void) {

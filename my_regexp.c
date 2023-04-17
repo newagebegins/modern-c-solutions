@@ -21,18 +21,14 @@ bool match_none_of(char const* r, char const* s) {
   }
 }
 
-bool match_range(char const* r, char const* s) {
-  char c1 = *r;
-  ++r;
-  assert(*r == '-');
-  ++r;
-  char c2 = *r;
-  if (c1 <= *s && *s <= c2) {
-    r = find_right_bracket(r+1);
-    assert(r);
-    return match(r+1, s+1);
-  }
-  return match_bracket(r+1, s);
+bool match_range(char const** r, char const* s) {
+  char c1 = **r;
+  ++*r;
+  assert(**r == '-');
+  ++*r;
+  char c2 = **r;
+  ++*r;
+  return (c1 <= *s && *s <= c2);
 }
 
 bool match_bracket(char const* r, char const* s) {
@@ -43,11 +39,16 @@ bool match_bracket(char const* r, char const* s) {
       return false;
     default:
       if (*(r+1) == '-') {
-        return match_range(r, s);
+        if (match_range(&r, s)) {
+          r = find_right_bracket(r);
+          assert(*r == ']');
+          return match(r+1, s+1);
+        }
+        return match_bracket(r, s);
       }
       if (*r == *s) {
         r = find_right_bracket(r+1);
-        assert(r);
+        assert(*r == ']');
         return match(r+1, s+1);
       }
       return match_bracket(r+1, s);

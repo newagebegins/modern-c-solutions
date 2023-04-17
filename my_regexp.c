@@ -8,8 +8,22 @@ char const* find_right_bracket(char const* r) {
   return r;
 }
 
+bool match_none_of(char const* r, char const* s) {
+  switch (*r) {
+    case ']':
+      return match(r+1, s+1);
+    default:
+      if (*r == *s) {
+        return false;
+      }
+      return match_none_of(r+1, s);
+  }
+}
+
 bool match_bracket(char const* r, char const* s) {
   switch (*r) {
+    case '^':
+      return match_none_of(r+1, s);
     case ']':
       return false;
     default:
@@ -44,9 +58,9 @@ bool match(char const* r, char const* s) {
     case '[': {
       return match_bracket(r+1, s);
     }
-    case ']': {
+    case ']':
+    case '^':
       assert(false);
-    }
     // Match a literal character
     default: {
       if (*r == *s) {
@@ -84,6 +98,11 @@ void test_match(void) {
   assert(!match("[cm]at", "hat"));
   assert(!match("[cm]at", "at"));
   assert(!match("[cm]at", "ca"));
+
+  assert(match("a[^cm]b", "axb"));
+  assert(!match("a[^cm]b", "acb"));
+  assert(!match("a[^cm]b", "amb"));
+  assert(!match("a[^cm]b", "axxb"));
 }
 
 int main(void) {

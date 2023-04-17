@@ -3,6 +3,7 @@
 
 bool match(char const* r, char const* s);
 bool match_bracket(char const* r, char const* s);
+bool match_range(char const** r, char const* s);
 
 char const* find_right_bracket(char const* r) {
   while (*r && *r != ']') ++r;
@@ -14,6 +15,12 @@ bool match_none_of(char const* r, char const* s) {
     case ']':
       return match(r+1, s+1);
     default:
+      if (*(r+1) == '-') {
+        if (match_range(&r, s)) {
+          return false;
+        }
+        return match_none_of(r, s);
+      }
       if (*r == *s) {
         return false;
       }
@@ -160,6 +167,17 @@ void test_match(void) {
   assert(match("a[A-Z][0-9]b", "aF7b"));
   assert(!match("a[A-Z][0-9]b", "a77b"));
   assert(!match("a[A-Z][0-9]b", "aABb"));
+
+  // None of with ranges
+
+  assert(!match("a[^A-C]b", "aAb"));
+  assert(!match("a[^A-C]b", "aBb"));
+  assert(!match("a[^A-C]b", "aCb"));
+  assert(match("a[^A-C]b", "aDb"));
+
+  assert(match("a[A-Z][^0-9b]b", "aACb"));
+  assert(!match("a[A-Z][^0-9b]b", "aA0b"));
+  assert(!match("a[A-Z][^b0-9]b", "aAbb"));
 }
 
 int main(void) {

@@ -39,7 +39,8 @@ bool match_range(char const** r, char const* s) {
 }
 
 bool match_bracket(char const* r, char const* s) {
-  switch (*r) {
+  while (*r && *s) {
+    switch (*r) {
     case '^':
       return match_none_of(r+1, s);
     case ']':
@@ -51,15 +52,16 @@ bool match_bracket(char const* r, char const* s) {
           assert(*r == ']');
           return match(r+1, s+1);
         }
-        return match_bracket(r, s);
-      }
-      if (*r == *s) {
+      } else if (*r == *s) {
         r = find_right_bracket(r+1);
         assert(*r == ']');
         return match(r+1, s+1);
+      } else {
+        ++r;
       }
-      return match_bracket(r+1, s);
+    }
   }
+  return false;
 }
 
 bool match(char const* r, char const* s) {

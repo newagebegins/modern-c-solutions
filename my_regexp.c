@@ -8,8 +8,22 @@ struct match_res {
 };
 
 char const* find_right_bracket(char const* r) {
-  while (*r && *r != ']') ++r;
-  return r;
+  int b = 1;
+  while (*r) {
+    switch (*r) {
+    case '[':
+      ++b;
+      break;
+    case ']':
+      --b;
+      if (!b) {
+        return r;
+      }
+      break;
+    }
+    ++r;
+  }
+  assert(false);
 }
 
 match_res match_range(char const* r, char const* s) {
@@ -50,6 +64,38 @@ match_res match_none_of(char const* r, char const* s) {
   assert(false);
 }
 
+match_res match_char_class(char const* r, char const* s) {
+  bool matched = false;
+  assert(*r == ':');
+  ++r;
+  switch (*r) {
+  case 'a':
+    ++r;
+    assert(*r++ == 'l');
+    assert(*r++ == 'p');
+    assert(*r++ == 'h');
+    assert(*r++ == 'a');
+    matched = ('a' <= *s && *s <= 'z') || ('A' <= *s && *s <= 'Z');
+    break;
+  case 'd':
+    ++r;
+    assert(*r++ == 'i');
+    assert(*r++ == 'g');
+    assert(*r++ == 'i');
+    assert(*r++ == 't');
+    matched = ('0' <= *s && *s <= '9');
+    break;
+  default:
+    assert(false);
+  }
+  assert(*r++ == ':');
+  assert(*r++ == ']');
+  return (match_res){
+    .matched = matched,
+    .r = r,
+  };
+}
+
 match_res match_bracket(char const* r, char const* s) {
   while (*r && *s) { // todo: remove *s?
     switch (*r) {
@@ -57,6 +103,15 @@ match_res match_bracket(char const* r, char const* s) {
       return match_none_of(r+1, s);
     case ']':
       return (match_res){ .matched = false };
+    case '[': {
+      match_res res = match_char_class(r+1, s);
+      r = res.r;
+      if (res.matched) {
+        res.r = find_right_bracket(r) + 1;
+        return res;
+      }
+      break;
+    }
     default:
       if (*(r+1) == '-') {
         match_res res = match_range(r, s);
@@ -205,6 +260,31 @@ void test_match(void) {
   assert(match("a[A-Z][^0-9b]b", "aACb"));
   assert(!match("a[A-Z][^0-9b]b", "aA0b"));
   assert(!match("a[A-Z][^b0-9]b", "aAbb"));
+
+  // Character classes
+
+  assert(match("[[:digit:]]", "0"));
+  assert(match("[[:digit:]]", "9"));
+  assert(!match("[[:digit:]]", "a"));
+  assert(match("a[[:digit:]]b", "a9b"));
+  assert(match("a[[:digit:]x]b", "a9b"));
+  assert(match("a[[:digit:]x]b", "axb"));
+  assert(!match("a[[:digit:]x]b", "abb"));
+
+  assert(match("[[:alpha:]]", "A"));
+  assert(match("[[:alpha:]]", "Z"));
+  assert(match("[[:alpha:]]", "a"));
+  assert(match("[[:alpha:]]", "z"));
+  assert(!match("[[:alpha:]]", "0"));
+  assert(match("[[:alpha:][:digit:]]", "A"));
+  assert(match("[[:alpha:][:digit:]]", "5"));
+  assert(!match("[[:alpha:][:digit:]]", "@"));
+
+  assert(match("x[[:digit:];[:alpha:]]y", "x3y"));
+  assert(match("x[[:digit:];[:alpha:]]y", "x;y"));
+  assert(match("x[[:digit:];[:alpha:]]y", "xGy"));
+  assert(match("x[[:digit:];[:alpha:]]y", "xgy"));
+  assert(!match("x[[:digit:];[:alpha:]]y", "x%y"));
 }
 
 int main(void) {

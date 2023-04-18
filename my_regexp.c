@@ -63,36 +63,41 @@ bool match_bracket(char const* r, char const* s) {
 }
 
 bool match(char const* r, char const* s) {
+  while (*r && *s) {
+    switch (*r) {
+      // Match anything
+      case '*': {
+        if (match(r+1, s)) {
+          return true;
+        }
+        ++s;
+        break;
+      }
+      // Match any single character
+      case '?': {
+        ++r;
+        ++s;
+        break;
+      }
+      case '[': {
+        return match_bracket(r+1, s);
+      }
+      case ']':
+      case '^':
+        assert(false);
+      // Match a literal character
+      default: {
+        if (*r == *s) {
+          ++r;
+          ++s;
+        } else {
+          return false;
+        }
+      }
+    }
+  }
   if (!*r) {
     return true;
-  }
-  if (!*s) {
-    return false;
-  }
-  switch (*r) {
-    // Match anything
-    case '*': {
-      if (match(r+1, s)) {
-        return true;
-      }
-      return match(r, s+1);
-    }
-    // Match any single character
-    case '?': {
-      return match(r+1, s+1);
-    }
-    case '[': {
-      return match_bracket(r+1, s);
-    }
-    case ']':
-    case '^':
-      assert(false);
-    // Match a literal character
-    default: {
-      if (*r == *s) {
-        return match(r+1, s+1);
-      }
-    }
   }
   return false;
 }

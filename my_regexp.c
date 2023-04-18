@@ -8,7 +8,7 @@ struct match_res {
 };
 
 bool match(char const* r, char const* s);
-bool match_bracket(char const* r, char const* s);
+match_res match_bracket(char const* r, char const* s);
 match_res match_range(char const* r, char const* s);
 
 char const* find_right_bracket(char const* r) {
@@ -16,23 +16,29 @@ char const* find_right_bracket(char const* r) {
   return r;
 }
 
-bool match_none_of(char const* r, char const* s) {
-  switch (*r) {
-    case ']':
-      return match(r+1, s+1);
-    default:
-      if (*(r+1) == '-') {
-        match_res res = match_range(r, s);
-        if (res.matched) {
-          return false;
+match_res match_none_of(char const* r, char const* s) {
+  while (*r) {
+    switch (*r) {
+      case ']':
+        return (match_res){
+          .matched = true,
+          .r = r+1,
+        };
+      default:
+        if (*(r+1) == '-') {
+          match_res res = match_range(r, s);
+          if (res.matched) {
+            return (match_res){ .matched = false };
+          }
+          r = res.r;
+        } else if (*r == *s) {
+          return (match_res){ .matched = false };
+        } else {
+          ++r;
         }
-        return match_none_of(res.r, s);
-      }
-      if (*r == *s) {
-        return false;
-      }
-      return match_none_of(r+1, s);
+    }
   }
+  assert(false);
 }
 
 match_res match_range(char const* r, char const* s) {
@@ -48,32 +54,32 @@ match_res match_range(char const* r, char const* s) {
   };
 }
 
-bool match_bracket(char const* r, char const* s) {
-  while (*r && *s) {
+match_res match_bracket(char const* r, char const* s) {
+  while (*r && *s) { // todo: remove *s?
     switch (*r) {
     case '^':
       return match_none_of(r+1, s);
     case ']':
-      return false;
+      return (match_res){ .matched = false };
     default:
       if (*(r+1) == '-') {
         match_res res = match_range(r, s);
         r = res.r;
         if (res.matched) {
-          r = find_right_bracket(r);
-          assert(*r == ']');
-          return match(r+1, s+1);
+          res.r = find_right_bracket(r) + 1;
+          return res;
         }
       } else if (*r == *s) {
-        r = find_right_bracket(r+1);
-        assert(*r == ']');
-        return match(r+1, s+1);
+        return (match_res){
+          .matched = true,
+          .r = find_right_bracket(r+1) + 1,
+        };
       } else {
         ++r;
       }
     }
   }
-  return false;
+  return (match_res){ .matched = false };
 }
 
 bool match(char const* r, char const* s) {
@@ -94,7 +100,13 @@ bool match(char const* r, char const* s) {
         break;
       }
       case '[': {
-        return match_bracket(r+1, s);
+        match_res res = match_bracket(r+1, s);
+        if (!res.matched) {
+          return false;
+        }
+        r = res.r;
+        ++s;
+        break;
       }
       case ']':
       case '^':

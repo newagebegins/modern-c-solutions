@@ -1,9 +1,15 @@
 #include <stdbool.h>
 #include <assert.h>
 
+typedef struct match_res match_res;
+struct match_res {
+  bool matched;
+  char const* r;
+};
+
 bool match(char const* r, char const* s);
 bool match_bracket(char const* r, char const* s);
-bool match_range(char const** r, char const* s);
+match_res match_range(char const* r, char const* s);
 
 char const* find_right_bracket(char const* r) {
   while (*r && *r != ']') ++r;
@@ -16,10 +22,11 @@ bool match_none_of(char const* r, char const* s) {
       return match(r+1, s+1);
     default:
       if (*(r+1) == '-') {
-        if (match_range(&r, s)) {
+        match_res res = match_range(r, s);
+        if (res.matched) {
           return false;
         }
-        return match_none_of(r, s);
+        return match_none_of(res.r, s);
       }
       if (*r == *s) {
         return false;
@@ -28,14 +35,17 @@ bool match_none_of(char const* r, char const* s) {
   }
 }
 
-bool match_range(char const** r, char const* s) {
-  char c1 = **r;
-  ++*r;
-  assert(**r == '-');
-  ++*r;
-  char c2 = **r;
-  ++*r;
-  return (c1 <= *s && *s <= c2);
+match_res match_range(char const* r, char const* s) {
+  char c1 = *r;
+  ++r;
+  assert(*r == '-');
+  ++r;
+  char c2 = *r;
+  ++r;
+  return (match_res){
+    .matched = (c1 <= *s && *s <= c2),
+    .r = r,
+  };
 }
 
 bool match_bracket(char const* r, char const* s) {
@@ -47,7 +57,9 @@ bool match_bracket(char const* r, char const* s) {
       return false;
     default:
       if (*(r+1) == '-') {
-        if (match_range(&r, s)) {
+        match_res res = match_range(r, s);
+        r = res.r;
+        if (res.matched) {
           r = find_right_bracket(r);
           assert(*r == ']');
           return match(r+1, s+1);

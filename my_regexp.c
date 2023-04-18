@@ -7,6 +7,8 @@ struct match_res {
   char const* r;
 };
 
+match_res match_char_class(char const* r, char const* s);
+
 char const* find_right_bracket(char const* r) {
   int b = 1;
   while (*r) {
@@ -47,6 +49,14 @@ match_res match_none_of(char const* r, char const* s) {
           .matched = true,
           .r = r+1,
         };
+      case '[': {
+        match_res res = match_char_class(r+1, s);
+        if (res.matched) {
+          return (match_res){ .matched = false };
+        }
+        r = res.r;
+        break;
+      }
       default:
         if (*(r+1) == '-') {
           match_res res = match_range(r, s);
@@ -285,6 +295,14 @@ void test_match(void) {
   assert(match("x[[:digit:];[:alpha:]]y", "xGy"));
   assert(match("x[[:digit:];[:alpha:]]y", "xgy"));
   assert(!match("x[[:digit:];[:alpha:]]y", "x%y"));
+
+  // Character classes (none of)
+  assert(match("[^[:digit:]]", "a"));
+  assert(!match("[^[:digit:]]", "5"));
+  assert(match("x[^[:digit:];[:alpha:]]y", "x@y"));
+  assert(!match("x[^[:digit:];[:alpha:]]y", "x3y"));
+  assert(!match("x[^[:digit:];[:alpha:]]y", "xSy"));
+  assert(!match("x[^[:digit:];[:alpha:]]y", "x;y"));
 }
 
 int main(void) {

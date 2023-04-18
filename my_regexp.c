@@ -7,13 +7,22 @@ struct match_res {
   char const* r;
 };
 
-bool match(char const* r, char const* s);
-match_res match_bracket(char const* r, char const* s);
-match_res match_range(char const* r, char const* s);
-
 char const* find_right_bracket(char const* r) {
   while (*r && *r != ']') ++r;
   return r;
+}
+
+match_res match_range(char const* r, char const* s) {
+  char c1 = *r;
+  ++r;
+  assert(*r == '-');
+  ++r;
+  char c2 = *r;
+  ++r;
+  return (match_res){
+    .matched = (c1 <= *s && *s <= c2),
+    .r = r,
+  };
 }
 
 match_res match_none_of(char const* r, char const* s) {
@@ -39,19 +48,6 @@ match_res match_none_of(char const* r, char const* s) {
     }
   }
   assert(false);
-}
-
-match_res match_range(char const* r, char const* s) {
-  char c1 = *r;
-  ++r;
-  assert(*r == '-');
-  ++r;
-  char c2 = *r;
-  ++r;
-  return (match_res){
-    .matched = (c1 <= *s && *s <= c2),
-    .r = r,
-  };
 }
 
 match_res match_bracket(char const* r, char const* s) {

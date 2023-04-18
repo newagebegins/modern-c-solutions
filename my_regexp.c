@@ -105,7 +105,7 @@ match_res match_none_of(char const* r, char const* s) {
 }
 
 match_res match_bracket(char const* r, char const* s) {
-  while (*r && *s) { // todo: remove *s?
+  while (*r) {
     switch (*r) {
     case '^':
       return match_none_of(r+1, s);
@@ -167,9 +167,6 @@ bool match(char const* r, char const* s) {
         ++s;
         break;
       }
-      case ']':
-      case '^':
-        assert(false);
       // Match a literal character
       default: {
         if (*r == *s) {

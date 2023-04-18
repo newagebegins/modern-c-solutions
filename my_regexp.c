@@ -7,7 +7,7 @@ struct match_res {
   char const* r;
 };
 
-char const* find_right_bracket(char const* r) {
+char const* after_bracket(char const* r) {
   int b = 1;
   while (*r) {
     switch (*r) {
@@ -17,7 +17,7 @@ char const* find_right_bracket(char const* r) {
     case ']':
       --b;
       if (!b) {
-        return r;
+        return r+1;
       }
       break;
     }
@@ -115,7 +115,7 @@ match_res match_bracket(char const* r, char const* s) {
       match_res res = match_char_class(r+1, s);
       r = res.r;
       if (res.matched) {
-        res.r = find_right_bracket(r) + 1;
+        res.r = after_bracket(r);
         return res;
       }
       break;
@@ -125,13 +125,13 @@ match_res match_bracket(char const* r, char const* s) {
         match_res res = match_range(r, s);
         r = res.r;
         if (res.matched) {
-          res.r = find_right_bracket(r) + 1;
+          res.r = after_bracket(r);
           return res;
         }
       } else if (*r == *s) {
         return (match_res){
           .matched = true,
-          .r = find_right_bracket(r+1) + 1,
+          .r = after_bracket(r+1),
         };
       } else {
         ++r;

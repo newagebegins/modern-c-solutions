@@ -7,8 +7,6 @@ struct match_res {
   char const* r;
 };
 
-match_res match_char_class(char const* r, char const* s);
-
 char const* find_right_bracket(char const* r) {
   int b = 1;
   while (*r) {
@@ -37,6 +35,38 @@ match_res match_range(char const* r, char const* s) {
   ++r;
   return (match_res){
     .matched = (c1 <= *s && *s <= c2),
+    .r = r,
+  };
+}
+
+match_res match_char_class(char const* r, char const* s) {
+  bool matched = false;
+  assert(*r == ':');
+  ++r;
+  switch (*r) {
+  case 'a':
+    ++r;
+    assert(*r++ == 'l');
+    assert(*r++ == 'p');
+    assert(*r++ == 'h');
+    assert(*r++ == 'a');
+    matched = ('a' <= *s && *s <= 'z') || ('A' <= *s && *s <= 'Z');
+    break;
+  case 'd':
+    ++r;
+    assert(*r++ == 'i');
+    assert(*r++ == 'g');
+    assert(*r++ == 'i');
+    assert(*r++ == 't');
+    matched = ('0' <= *s && *s <= '9');
+    break;
+  default:
+    assert(false);
+  }
+  assert(*r++ == ':');
+  assert(*r++ == ']');
+  return (match_res){
+    .matched = matched,
     .r = r,
   };
 }
@@ -72,38 +102,6 @@ match_res match_none_of(char const* r, char const* s) {
     }
   }
   assert(false);
-}
-
-match_res match_char_class(char const* r, char const* s) {
-  bool matched = false;
-  assert(*r == ':');
-  ++r;
-  switch (*r) {
-  case 'a':
-    ++r;
-    assert(*r++ == 'l');
-    assert(*r++ == 'p');
-    assert(*r++ == 'h');
-    assert(*r++ == 'a');
-    matched = ('a' <= *s && *s <= 'z') || ('A' <= *s && *s <= 'Z');
-    break;
-  case 'd':
-    ++r;
-    assert(*r++ == 'i');
-    assert(*r++ == 'g');
-    assert(*r++ == 'i');
-    assert(*r++ == 't');
-    matched = ('0' <= *s && *s <= '9');
-    break;
-  default:
-    assert(false);
-  }
-  assert(*r++ == ':');
-  assert(*r++ == ']');
-  return (match_res){
-    .matched = matched,
-    .r = r,
-  };
 }
 
 match_res match_bracket(char const* r, char const* s) {

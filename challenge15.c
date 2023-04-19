@@ -86,14 +86,14 @@ void test_regexp() {
   assert(!strcmp(s1, "Hello, there, 5-q"));
   free(s1);
 
-  char* s3 = regexp_replace("((abc) (([de])([[:digit:]])))", "abc e5", "$0|$1|$2|$3|$4");
-  assert(!strcmp(s3, "abc e5|abc|e5|e|5"));
-  free(s3);
+  char* s2 = regexp_replace("((abc) (([de])([[:digit:]])))", "abc e5", "$0|$1|$2|$3|$4");
+  assert(!strcmp(s2, "abc e5|abc|e5|e|5"));
+  free(s2);
 
-  char* s4 = "abc1dd123x";
-  saved_match search_res = regexp_search("[0-9][0-9][0-9]", s4);
-  assert(search_res.start == s4 + 6);
-  assert(search_res.end == s4 + 9);
+  char* s3 = "abc1dd123x";
+  saved_match search_res = regexp_search("[0-9][0-9][0-9]", s3);
+  assert(search_res.start == s3 + 6);
+  assert(search_res.end == s3 + 9);
 }
 
 int main(void) {

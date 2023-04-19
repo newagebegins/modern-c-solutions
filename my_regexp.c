@@ -259,6 +259,21 @@ char* regexp_replace(char const* r, char const* s, char const* repl) {
   return ret;
 }
 
+saved_match regexp_search(char const* r, char const* s) {
+  char buf[100] = {'*', '('};
+  char* p = stpcpy(buf+2, r);
+  *p = ')';
+  ++p;
+  *p = '*';
+  ++p;
+  *p = 0;
+  clear_saves();
+  if (match(buf, s)) {
+    return saves[0];
+  }
+  return (saved_match){0};
+}
+
 void test_match(void) {
   // Literal characters
 
@@ -400,6 +415,13 @@ void test_match(void) {
   char* s3 = regexp_replace("((abc) (([de])([[:digit:]])))", "abc e5", "$0|$1|$2|$3|$4");
   assert(!strcmp(s3, "abc e5|abc|e5|e|5"));
   free(s3);
+
+  // Regexp search
+
+  char* s4 = "abc1dd123x";
+  saved_match search_res = regexp_search("[0-9][0-9][0-9]", s4);
+  assert(search_res.start == s4 + 6);
+  assert(search_res.end == s4 + 9);
 }
 
 int main(void) {

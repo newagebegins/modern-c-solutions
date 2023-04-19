@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
+
+#include "my_regexp.h"
 
 // Find a word w in the string s.
 // Return a pointer to the start of w in s or 0 if not found.
@@ -74,8 +77,28 @@ void test_replace_word(void) {
   free(x3);
 }
 
+void test_regexp() {
+  assert(match("a[A-BC-De]b", "aAb"));
+  assert(match("x[[:digit:];[:alpha:]]y", "x3y"));
+  assert(!match("x[^[:digit:];[:alpha:]]y", "x3y"));
+
+  char* s1 = regexp_replace("(*) ([[:digit:]])([a-z])", "Hello, 5q", "$0 there, $1-$2");
+  assert(!strcmp(s1, "Hello, there, 5-q"));
+  free(s1);
+
+  char* s3 = regexp_replace("((abc) (([de])([[:digit:]])))", "abc e5", "$0|$1|$2|$3|$4");
+  assert(!strcmp(s3, "abc e5|abc|e5|e|5"));
+  free(s3);
+
+  char* s4 = "abc1dd123x";
+  saved_match search_res = regexp_search("[0-9][0-9][0-9]", s4);
+  assert(search_res.start == s4 + 6);
+  assert(search_res.end == s4 + 9);
+}
+
 int main(void) {
   test_find_word();
   test_replace_word();
+  test_regexp();
   return EXIT_SUCCESS;
 }

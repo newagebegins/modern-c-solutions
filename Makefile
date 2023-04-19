@@ -6,3 +6,9 @@ bin/my_regexp_test.o : my_regexp_test.c my_regexp.h
 
 bin/my_regexp.o : my_regexp.c my_regexp.h
 	clang -Wall -c -o bin/my_regexp.o my_regexp.c
+
+bin/challenge15 : bin/challenge15.o bin/my_regexp.o
+	clang -Wall -o bin/challenge15 bin/challenge15.o bin/my_regexp.o
+
+bin/challenge15.o : challenge15.c my_regexp.h
+	clang -Wall -c -o bin/challenge15.o challenge15.c

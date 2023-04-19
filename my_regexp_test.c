@@ -118,39 +118,22 @@ void test_match(void) {
   assert(!match("x[^[:digit:];[:alpha:]]y", "xSy"));
   assert(!match("x[^[:digit:];[:alpha:]]y", "x;y"));
 
-  // Grouping
-  char const* s = "Hello, cat";
-  assert(match("*([cm]at)", s));
-  assert(saves[0].start == s + 7);
-  assert(saves[0].end == s + 10);
-
-  clear_saves();
-
-  char const* s2 = "Hello, 5q";
-  assert(match("(*) ([[:digit:]])([a-z])", s2));
-  assert(saves[0].start == s2);
-  assert(saves[0].end == s2+6);
-  assert(saves[1].start == s2+7);
-  assert(saves[1].end == s2+8);
-  assert(saves[2].start == s2+8);
-  assert(saves[2].end == s2+9);
-
   // Regexp replace
 
   char* s1 = regexp_replace("(*) ([[:digit:]])([a-z])", "Hello, 5q", "$0 there, $1-$2");
   assert(!strcmp(s1, "Hello, there, 5-q"));
   free(s1);
 
-  char* s3 = regexp_replace("((abc) (([de])([[:digit:]])))", "abc e5", "$0|$1|$2|$3|$4");
-  assert(!strcmp(s3, "abc e5|abc|e5|e|5"));
-  free(s3);
+  char* s2 = regexp_replace("((abc) (([de])([[:digit:]])))", "abc e5", "$0|$1|$2|$3|$4");
+  assert(!strcmp(s2, "abc e5|abc|e5|e|5"));
+  free(s2);
 
   // Regexp search
 
-  char* s4 = "abc1dd123x";
-  saved_match search_res = regexp_search("[0-9][0-9][0-9]", s4);
-  assert(search_res.start == s4 + 6);
-  assert(search_res.end == s4 + 9);
+  char* s3 = "abc1dd123x";
+  saved_match search_res = regexp_search("[0-9][0-9][0-9]", s3);
+  assert(search_res.start == s3 + 6);
+  assert(search_res.end == s3 + 9);
 }
 
 int main(void) {

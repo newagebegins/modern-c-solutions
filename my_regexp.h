@@ -11,12 +11,8 @@ struct saved_match {
   char const* end;
 };
 
-enum {max_saves = 20};
-extern saved_match saves[max_saves];
-
 bool match(char const* r, char const* s);
 char* regexp_replace(char const* r, char const* s, char const* repl);
 saved_match regexp_search(char const* r, char const* s);
-void clear_saves();
 
 #endif

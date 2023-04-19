@@ -9,10 +9,7 @@ struct match_res {
   char const* r;
 };
 
-saved_match saves[max_saves] = {0};
-saved_match group_stack[max_saves] = {0};
-saved_match* group_sp = group_stack;
-size_t group_index = 0;
+enum {max_saves = 20};
 
 char const* after_bracket(char const* r) {
   int b = 1;
@@ -148,18 +145,15 @@ match_res match_bracket(char const* r, char const* s) {
   return (match_res){ .matched = false };
 }
 
-bool match(char const* r, char const* s) {
+bool _match(char const* r, char const* s, saved_match saves[max_saves],
+            saved_match* group_sp, size_t group_index) {
   while (*r && *s) {
     switch (*r) {
       // Match anything
       case '*': {
-        saved_match* old_group_sp = group_sp;
-        size_t old_group_index = group_index;
-        if (match(r+1, s)) {
+        if (_match(r+1, s, saves, group_sp, group_index)) {
           return true;
         }
-        group_index = old_group_index;
-        group_sp = old_group_sp;
         ++s;
         break;
       }
@@ -214,20 +208,20 @@ bool match(char const* r, char const* s) {
   return false;
 }
 
-void clear_saves() {
-  for (size_t i = 0; i < max_saves; ++i) {
-    saves[i] = (saved_match){0};
-    group_stack[i] = (saved_match){0};
-  }
-  group_sp = group_stack;
-  group_index = 0;
+bool match(char const* r, char const* s) {
+  saved_match saves[max_saves] = {0};
+  saved_match group_stack[max_saves] = {0};
+  saved_match* group_sp = group_stack;
+  return _match(r, s, saves, group_sp, 0);
 }
 
 char* regexp_replace(char const* r, char const* s, char const* repl) {
-  clear_saves();
+  saved_match saves[max_saves] = {0};
+  saved_match group_stack[max_saves] = {0};
+  saved_match* group_sp = group_stack;
   char buf[200] = {0};
   char* b = buf;
-  if (match(r, s)) {
+  if (_match(r, s, saves, group_sp, 0)) {
     while (*repl) {
       if (*repl == '$') {
         ++repl;
@@ -252,6 +246,9 @@ char* regexp_replace(char const* r, char const* s, char const* repl) {
 }
 
 saved_match regexp_search(char const* r, char const* s) {
+  saved_match saves[max_saves] = {0};
+  saved_match group_stack[max_saves] = {0};
+  saved_match* group_sp = group_stack;
   char buf[100] = {'*', '('};
   char* p = stpcpy(buf+2, r);
   *p = ')';
@@ -259,8 +256,7 @@ saved_match regexp_search(char const* r, char const* s) {
   *p = '*';
   ++p;
   *p = 0;
-  clear_saves();
-  if (match(buf, s)) {
+  if (_match(buf, s, saves, group_sp, 0)) {
     return saves[0];
   }
   return (saved_match){0};

@@ -11,15 +11,16 @@ struct match_res {
 
 typedef struct saved_match saved_match;
 struct saved_match {
+  size_t index;
   char const* start;
   char const* end;
 };
 
 enum {max_saves = 20};
-saved_match saves[max_saves];
-saved_match* saves_sp = saves;
-saved_match group_stack[max_saves];
+saved_match saves[max_saves] = {0};
+saved_match group_stack[max_saves] = {0};
 saved_match* group_sp = group_stack;
+size_t group_index = 0;
 
 char const* after_bracket(char const* r) {
   int b = 1;
@@ -161,11 +162,11 @@ bool match(char const* r, char const* s) {
       // Match anything
       case '*': {
         saved_match* old_group_sp = group_sp;
-        saved_match* old_saves_sp = saves_sp;
+        size_t old_group_index = group_index;
         if (match(r+1, s)) {
           return true;
         }
-        saves_sp = old_saves_sp;
+        group_index = old_group_index;
         group_sp = old_group_sp;
         ++s;
         break;
@@ -186,6 +187,7 @@ bool match(char const* r, char const* s) {
         break;
       }
       case '(':
+        group_sp->index = group_index++;
         group_sp->start = s;
         ++group_sp;
         ++r;
@@ -193,8 +195,7 @@ bool match(char const* r, char const* s) {
       case ')':
         --group_sp;
         group_sp->end = s;
-        *saves_sp = *group_sp;
-        ++saves_sp;
+        saves[group_sp->index] = *group_sp;
         ++r;
         break;
       // Match a literal character
@@ -209,10 +210,10 @@ bool match(char const* r, char const* s) {
     }
   }
   while (*r == ')') {
+    // todo: remove duplicate code
     --group_sp;
     group_sp->end = s;
-    *saves_sp = *group_sp;
-    ++saves_sp;
+    saves[group_sp->index] = *group_sp;
     ++r;
   }
   if (!*r) {
@@ -226,8 +227,8 @@ static void clear_saves() {
     saves[i] = (saved_match){0};
     group_stack[i] = (saved_match){0};
   }
-  saves_sp = saves;
   group_sp = group_stack;
+  group_index = 0;
 }
 
 char* regexp_replace(char const* r, char const* s, char const* repl) {
@@ -395,6 +396,10 @@ void test_match(void) {
   char* s1 = regexp_replace("(*) ([[:digit:]])([a-z])", "Hello, 5q", "$0 there, $1-$2");
   assert(!strcmp(s1, "Hello, there, 5-q"));
   free(s1);
+
+  char* s3 = regexp_replace("((abc) (([de])([[:digit:]])))", "abc e5", "$0|$1|$2|$3|$4");
+  assert(!strcmp(s3, "abc e5|abc|e5|e|5"));
+  free(s3);
 }
 
 int main(void) {

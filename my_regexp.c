@@ -1,5 +1,7 @@
 #include <stdbool.h>
 #include <assert.h>
+#include <string.h>
+#include <stdlib.h>
 
 typedef struct match_res match_res;
 struct match_res {
@@ -13,8 +15,11 @@ struct saved_match {
   char const* end;
 };
 
-static saved_match saves[20];
-static int group;
+enum {max_saves = 20};
+saved_match saves[max_saves];
+saved_match* saves_sp = saves;
+saved_match group_stack[max_saves];
+saved_match* group_sp = group_stack;
 
 char const* after_bracket(char const* r) {
   int b = 1;
@@ -155,11 +160,13 @@ bool match(char const* r, char const* s) {
     switch (*r) {
       // Match anything
       case '*': {
-        int old_group = group;
+        saved_match* old_group_sp = group_sp;
+        saved_match* old_saves_sp = saves_sp;
         if (match(r+1, s)) {
           return true;
         }
-        group = old_group;
+        saves_sp = old_saves_sp;
+        group_sp = old_group_sp;
         ++s;
         break;
       }
@@ -179,14 +186,15 @@ bool match(char const* r, char const* s) {
         break;
       }
       case '(':
-        saves[group].start = s;
-        ++group;
+        group_sp->start = s;
+        ++group_sp;
         ++r;
         break;
       case ')':
-        --group;
-        assert(group >= 0);
-        saves[group].end = s;
+        --group_sp;
+        group_sp->end = s;
+        *saves_sp = *group_sp;
+        ++saves_sp;
         ++r;
         break;
       // Match a literal character
@@ -201,15 +209,53 @@ bool match(char const* r, char const* s) {
     }
   }
   while (*r == ')') {
-    --group;
-    assert(group >= 0);
-    saves[group].end = s;
+    --group_sp;
+    group_sp->end = s;
+    *saves_sp = *group_sp;
+    ++saves_sp;
     ++r;
   }
   if (!*r) {
     return true;
   }
   return false;
+}
+
+static void clear_saves() {
+  for (size_t i = 0; i < max_saves; ++i) {
+    saves[i] = (saved_match){0};
+    group_stack[i] = (saved_match){0};
+  }
+  saves_sp = saves;
+  group_sp = group_stack;
+}
+
+char* regexp_replace(char const* r, char const* s, char const* repl) {
+  clear_saves();
+  char buf[200] = {0};
+  char* b = buf;
+  if (match(r, s)) {
+    while (*repl) {
+      if (*repl == '$') {
+        ++repl;
+        int g = atoi(repl);
+        ++repl;
+        for (char const* p = saves[g].start; p < saves[g].end; ++p, ++b) {
+          *b = *p;
+        }
+      } else {
+        *b = *repl;
+        ++b;
+        ++repl;
+      }
+    }
+    *b = 0;
+  } else {
+    strcpy(buf, s);
+  }
+  char* ret = malloc(strlen(buf) + 1);
+  strcpy(ret, buf);
+  return ret;
 }
 
 void test_match(void) {
@@ -332,6 +378,23 @@ void test_match(void) {
   assert(match("*([cm]at)", s));
   assert(saves[0].start == s + 7);
   assert(saves[0].end == s + 10);
+
+  clear_saves();
+
+  char const* s2 = "Hello, 5q";
+  assert(match("(*) ([[:digit:]])([a-z])", s2));
+  assert(saves[0].start == s2);
+  assert(saves[0].end == s2+6);
+  assert(saves[1].start == s2+7);
+  assert(saves[1].end == s2+8);
+  assert(saves[2].start == s2+8);
+  assert(saves[2].end == s2+9);
+
+  // Regexp replace
+
+  char* s1 = regexp_replace("(*) ([[:digit:]])([a-z])", "Hello, 5q", "$0 there, $1-$2");
+  assert(!strcmp(s1, "Hello, there, 5-q"));
+  free(s1);
 }
 
 int main(void) {

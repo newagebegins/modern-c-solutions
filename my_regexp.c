@@ -7,6 +7,15 @@ struct match_res {
   char const* r;
 };
 
+typedef struct saved_match saved_match;
+struct saved_match {
+  char const* start;
+  char const* end;
+};
+
+static saved_match saves[20];
+static int group;
+
 char const* after_bracket(char const* r) {
   int b = 1;
   while (*r) {
@@ -146,9 +155,11 @@ bool match(char const* r, char const* s) {
     switch (*r) {
       // Match anything
       case '*': {
+        int old_group = group;
         if (match(r+1, s)) {
           return true;
         }
+        group = old_group;
         ++s;
         break;
       }
@@ -167,6 +178,17 @@ bool match(char const* r, char const* s) {
         ++s;
         break;
       }
+      case '(':
+        saves[group].start = s;
+        ++group;
+        ++r;
+        break;
+      case ')':
+        --group;
+        assert(group >= 0);
+        saves[group].end = s;
+        ++r;
+        break;
       // Match a literal character
       default: {
         if (*r == *s) {
@@ -177,6 +199,12 @@ bool match(char const* r, char const* s) {
         }
       }
     }
+  }
+  while (*r == ')') {
+    --group;
+    assert(group >= 0);
+    saves[group].end = s;
+    ++r;
   }
   if (!*r) {
     return true;
@@ -298,6 +326,12 @@ void test_match(void) {
   assert(!match("x[^[:digit:];[:alpha:]]y", "x3y"));
   assert(!match("x[^[:digit:];[:alpha:]]y", "xSy"));
   assert(!match("x[^[:digit:];[:alpha:]]y", "x;y"));
+
+  // Grouping
+  char const* s = "Hello, cat";
+  assert(match("*([cm]at)", s));
+  assert(saves[0].start == s + 7);
+  assert(saves[0].end == s + 10);
 }
 
 int main(void) {

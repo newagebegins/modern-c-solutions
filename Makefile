@@ -12,3 +12,6 @@ bin/challenge15 : bin/challenge15.o bin/my_regexp.o
 
 bin/challenge15.o : challenge15.c my_regexp.h
 	clang -Wall -c -o bin/challenge15.o challenge15.c
+
+bin/exs42_scanf : exs42_scanf.c
+	clang -Wall -o bin/exs42_scanf exs42_scanf.c

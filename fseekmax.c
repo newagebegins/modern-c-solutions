@@ -32,6 +32,7 @@ int fseekmax(FILE* stream, intmax_t offset, int whence) {
   return 0;
 }
 
+// Print 10 bytes of a file at the given offset
 int main(int argc, char* argv[argc+1]) {
   if (argc < 3) {
     printf("Usage: %s path-to-file byte-offset\n", argv[0]);

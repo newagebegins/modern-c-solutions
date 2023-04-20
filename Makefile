@@ -15,3 +15,6 @@ bin/challenge15.o : challenge15.c my_regexp.h
 
 bin/exs42_scanf : exs42_scanf.c
 	clang -Wall -o bin/exs42_scanf exs42_scanf.c
+
+bin/fseekmax.o : fseekmax.c
+	clang -Wall -c -o bin/fseekmax.o fseekmax.c

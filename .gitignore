@@ -1,1 +1,12 @@
-/bin/
+# Ignore files without extension:
+# 1) ignore all;
+*
+# 2) unignore all with extensions;
+!*.*
+# 3) unignore all dirs.
+!*/
+
+*.o
+
+.vscode
+.DS_Store

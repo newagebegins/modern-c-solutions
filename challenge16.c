@@ -7,6 +7,23 @@
 
 enum { max_line = 100 };
 
+void replace_all(char* line, char* line_replaced,
+                 char* to_replace, char* replacement) {
+  size_t len = strlen(to_replace);
+  while (*line) {
+    char* res = strstr(line, to_replace);
+    if (res) {
+      line_replaced = stpncpy(line_replaced, line, res - line);
+      line_replaced = stpcpy(line_replaced, replacement);
+      line = res + len;
+    } else {
+      strcpy(line_replaced, line);
+      break;
+    }
+  }
+}
+
+
 int main(void) {
   char const* counted_words[] = {
     "hello",
@@ -27,8 +44,8 @@ int main(void) {
     return EXIT_FAILURE;
   }
 
-  char const* to_replace = "vim";
-  char const* replacement = "emacs";
+  char* to_replace = "vim";
+  char* replacement = "emacs";
 
   char line[max_line] = {0};
   char line_alnum[max_line] = {0};
@@ -37,6 +54,9 @@ int main(void) {
   size_t num_words = 0;
 
   while (fgets(line, max_line, stdin)) {
+    replace_all(line, line_replaced, to_replace, replacement);
+    fputs(line_replaced, stdout);
+
     // Copy line into line_alnum, but replace all non-alphanumeric
     // characters with zeros. Effectively we split one big string into
     // multiple zero-terminating words. Pointers to these words are

@@ -1,11 +1,11 @@
-On macOS with clang most files can be built with:
+On macOS with clang executabbles can be built with:
 
 ```
-clang -Wall -o bin/my-prog my-prog.c
+clang -Wall -o my-prog my-prog.c
 ```
 
-To build `circular-test.c`:
+or:
 
 ```
-clang -Wall -o bin/circular-test circular-test.c circular.c
+make my-prog
 ```

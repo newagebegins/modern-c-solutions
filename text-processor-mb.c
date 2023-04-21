@@ -1,14 +1,15 @@
 // Challenge 17: Text Processor (with multibyte characters)
 
 #include <stdlib.h>
-#include <string.h>
 #include <stdio.h>
 #include <assert.h>
+#include <wchar.h>
+#include <locale.h>
 
 enum { max_text = 64 };
 typedef struct blob blob;
 struct blob {
-  char text[max_text];
+  wchar_t text[max_text];
   blob* prev;
   blob* next;
 };
@@ -34,7 +35,7 @@ void free_blob(blob* b) {
 
 void split(blob *b, size_t i) {
   blob* b2 = get_blob();
-  strcpy(b2->text, &b->text[i+1]);
+  wcscpy(b2->text, &b->text[i+1]);
   b->text[i+1] = 0;
   b2->prev = b;
   b2->next = b->next;
@@ -42,9 +43,9 @@ void split(blob *b, size_t i) {
 }
 
 void join(blob* b) {
-  size_t len = strlen(b->text);
-  assert(len + strlen(b->next->text) + 1 < max_text);
-  strcpy(&b->text[len], b->next->text);
+  size_t len = wcslen(b->text);
+  assert(len + wcslen(b->next->text) + 1 < max_text);
+  wcscpy(&b->text[len], b->next->text);
   blob* tmp = b->next;
   b->next = b->next->next;
   if (b->next) {
@@ -58,7 +59,7 @@ void format(blob* b) {
   if (!b) {
     return;
   }
-  char* n = strchr(b->text, '\n');
+  wchar_t* n = wcschr(b->text, '\n');
   if (n) {
     if (n[1]) {
       split(b, n - b->text);
@@ -75,16 +76,16 @@ void print_n(blob* b, size_t n) {
   if (!b) {
     return;
   }
-  size_t len = strlen(b->text);
+  size_t len = wcslen(b->text);
   if (len <= n) {
-    fputs(b->text, stdout);
+    fputws(b->text, stdout);
     print_n(b->next, n-len);
   } else {
-    char buf[max_text];
+    wchar_t buf[max_text];
     assert(max_text > n);
-    strncpy(buf, b->text, n);
+    wcsncpy(buf, b->text, n);
     buf[n] = 0;
-    fputs(buf, stdout);
+    fputws(buf, stdout);
   }
 }
 
@@ -92,28 +93,30 @@ void print_all(blob* b) {
   if (!b) {
     return;
   }
-  fputs(b->text, stdout);
+  fputws(b->text, stdout);
   print_all(b->next);
 }
 
 int main(void) {
+  setlocale(LC_ALL, "");
+
   blob* b1 = get_blob();
-  strcpy(b1->text, "1st");
+  wcscpy(b1->text, L"1ая");
 
   blob* b2 = get_blob();
-  strcpy(b2->text, " line\n2nd line");
+  wcscpy(b2->text, L" строка\n2ая строка");
 
   blob* b3 = get_blob();
-  strcpy(b3->text, ", still 2nd line\n");
+  wcscpy(b3->text, L", всё ещё 2ая строка\n");
 
   blob* b4 = get_blob();
-  strcpy(b4->text, "3rd\n4th line!!!!!!!\n5th ");
+  wcscpy(b4->text, L"3я\n4я строка!!!!!!!\n5я ");
 
   blob* b5 = get_blob();
-  strcpy(b5->text, "line");
+  wcscpy(b5->text, L"строка");
 
   blob* b6 = get_blob();
-  strcpy(b6->text, " still 5th\n");
+  wcscpy(b6->text, L" всё ещё 5я\n");
 
   b1->next = b2;
   b2->prev = b1;
@@ -133,15 +136,15 @@ int main(void) {
   printf("format test:\n");
   format(b1);
   blob* x = b1;
-  printf("1: %s", x->text);
+  wprintf(L"1: %ls", x->text);
   x = x->next;
-  printf("2: %s", x->text);
+  wprintf(L"2: %ls", x->text);
   x = x->next;
-  printf("3: %s", x->text);
+  wprintf(L"3: %ls", x->text);
   x = x->next;
-  printf("4: %s", x->text);
+  wprintf(L"4: %ls", x->text);
   x = x->next;
-  printf("5: %s", x->text);
+  wprintf(L"5: %ls", x->text);
   assert(!x->next);
 
   printf("\nprint_n test:\n");

@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -Wall
+CFLAGS = -Wall -O2
 
 circular-test : circular.o
 my_regexp_test : my_regexp.o

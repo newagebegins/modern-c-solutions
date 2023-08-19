@@ -64,11 +64,15 @@ struct Task {
   int* B;
   int iBegin;
   int iEnd;
+  int isSplit;
 };
 
 void* sortTask(void* arg) {
   Task* task = arg;
-  TopDownSplitMerge(task->A, task->iBegin, task->iEnd, task->B);
+  if (task->isSplit)
+    TopDownSplitMerge(task->A, task->iBegin, task->iEnd, task->B);
+  else
+    TopDownMerge(task->A, task->iBegin, (task->iBegin + task->iEnd)/2, task->iEnd, task->B);
   return 0;
 }
 
@@ -96,6 +100,7 @@ void parallelMergeSort(size_t N, int A[N], size_t k) {
           .B = j % 2 ? B : A,
           .iBegin = i*chunk_size,
           .iEnd = (i+1)*chunk_size,
+          .isSplit = j == k,
         };
       }
       for (size_t i = 0; i < num_threads; ++i) {
